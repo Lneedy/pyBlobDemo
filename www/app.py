@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'Lneedy'
+
 import logging
 import asyncio, os, json, time
 from datetime import datetime

@@ -3,7 +3,7 @@
 
 __author__ = 'Lneedy'
 
-import asyncio, logging, aiomysql
+import logging, aiomysql
 from utils import sqlRep
 def log(sql, args=()):
     logging.info('SQL: %s' % sql)
@@ -13,9 +13,10 @@ async def create_pool(loop, **kw):
     global __pool
     __pool = await aiomysql.create_pool(
         host=kw.get('host', 'localhost'),
+        db=kw['db'],
         port=kw.get('post', 3306),
-        user=kw.get('user', 'root'),
-        password=kw.get('password', 123456),
+        user=kw['user'],
+        password=kw['password'],
         charset=kw.get('charset', 'utf8'),
         autocommit=kw.get('autocommit', True),
         maxsize=kw.get('maxsize', 10),
@@ -28,7 +29,7 @@ async def select(sql, args, size=None):
     global __pool
     with (await __pool) as conn:
         cur = await conn.cursor(aiomysql.DictCursor)
-        await cur.execute(sqlRep, args or ())
+        await cur.execute(sqlRep(sql), args or ())
         if size:
             rs = await cur.fetchmany(size)
         else:
@@ -42,7 +43,7 @@ async def execute(sql, args, autocommit=True):
     with(await __pool) as conn:
         try:
             cur = await conn.cursor()
-            await cur.execute(sqlRep, args)
+            await cur.execute(sqlRep(sql), args)
             affected = cur.rowcount
             await cur.close()
         except BaseException as e:
@@ -55,7 +56,7 @@ def create_args_string(num):
         L.append('?')
     return ', '.join(L)
 
-class Field(Object):
+class Field(object):
     def __init__(self, name, column_type, primary_key, default):
         self.name = name
         self.column_type = column_type
@@ -79,11 +80,11 @@ class IntegerField(Field):
 
 class FloatField(Field):
     def __init__(self, name=None, primary_key=False, default=0.0, ddl='real'):
-        super().__init(name, ddl, primary_key, default)
+        super().__init__(name, ddl, primary_key, default)
 
 class TextField(Field):
     def __init__(self, name=None, primary_key=False, default=None, ddl='text'):
-        super().__init(name, ddl, primary_key, default)
+        super().__init__(name, ddl, primary_key, default)
 
 class ModelMetaclass(type):
     def __new__(cls, name, bases, attrs):

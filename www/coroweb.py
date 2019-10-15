@@ -9,12 +9,12 @@ import logging
 import os
 from functools import wraps
 from urllib import parse
-
 from aiohttp import web
 from apiDefind import APIError
 
 
 def get(path):
+    logging.info("get...")
     '''
     docorator 定义 @get('/path')
     :param path: 路由地址
@@ -25,13 +25,15 @@ def get(path):
         @wraps(func)
         def wrapper(*args, **kw):
             return func(*args, **kw)
-
+        wrapper.__method__ = 'GET'
+        wrapper.__route__ = path
         return wrapper
 
     return decorator
 
 
 def post(path):
+    logging.info("post...")
     '''
         docorator 定义 @post('/path')
         :param path: 路由地址
@@ -43,12 +45,15 @@ def post(path):
         def wrapper(*args, **kw):
             return func(*args, **kw)
 
+        wrapper.__method__ = 'GET'
+        wrapper.__route__ = path
         return wrapper
 
     return decorator
 
 
 def get_required_kw_args(fn):
+    logging.info("get_required_kw_args...")
     '''
     获取带 * 或者 *args 之后的参数
     :param fn:
@@ -63,6 +68,7 @@ def get_required_kw_args(fn):
 
 
 def get_named_kw_args(fn):
+    logging.info("get_named_kw_args...")
     '''
     获取 位置参数(普通参数)
     :param fn:
@@ -77,6 +83,7 @@ def get_named_kw_args(fn):
 
 
 def has_named_kw_args(fn):
+    logging.info("has_named_kw_args...")
     '''
     判断是否拥有* 或者 *args 之后的参数
     :param fn:
@@ -89,6 +96,7 @@ def has_named_kw_args(fn):
 
 
 def has_var_kw_args(fn):
+    logging.info("has_var_kw_args...")
     '''
     判断是否拥有**kw
     :param fn:
@@ -101,6 +109,7 @@ def has_var_kw_args(fn):
 
 
 def has_request_args(fn):
+    logging.info("has_request_args...")
     sig = inspect.signature(fn)
     params = sig.parameters
     found = False
@@ -117,6 +126,7 @@ def has_request_args(fn):
 
 class RequestHandler(object):
     def __init__(self, app, fn):
+        logging.info("RequestHandler.__init__...")
         self.app = app
         self._func = fn
         self._has_request_args = has_request_args(fn)
@@ -126,6 +136,7 @@ class RequestHandler(object):
         self._request_kw_args = get_required_kw_args(fn)
 
     async def __call__(self, request):
+        logging.info("RequestHandler.__call__...")
         kw = None
         if self._has_var_kw_args or self._has_named_kw_args or self._has_request_args:
             if request.method == 'POST':
@@ -177,26 +188,29 @@ class RequestHandler(object):
 
 
 def add_routes(app, module_name):
+    logging.info("add_routes..." )
     n = module_name.rfind('.')
     if n == (-1):
         mod = __import__(module_name, globals(), locals())
     else:
         name = module_name[n + 1:]
         mod = getattr(__import__(module_name[:n], globals(), locals(), [name]), name)
-        for attr in dir(mod):
-            if attr.startswith('_'):
-                continue
-            fn = getattr(mod, attr)
-            if callable(fn):
-                method = getattr(fn, '__method__', None)
-                path = getattr(fn, '__route__', None)
-                if method and path:
-                    add_route(app, fn)
+    for attr in dir(mod):
+        if attr.startswith('_'):
+            continue
+        fn = getattr(mod, attr)
+        if callable(fn):
+            method = getattr(fn, '__method__', None)
+            path = getattr(fn, '__route__', None)
+            if method and path:
+                add_route(app, fn)
 
 
 def add_route(app, fn):
+    logging.info("add_route...")
     method = getattr(fn, '__method__', None)
     path = getattr(fn, '__route__', None)
+    logging.info('add_route. path=%s, method=%s ' % (path, method))
     if path is None or method is None:
         raise ValueError('@get or @post not defined in %s.' % str(fn))
     if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
@@ -207,6 +221,7 @@ def add_route(app, fn):
 
 
 def add_static(app):
+    logging.info("add_static...")
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)
     logging.info('add static %s => %s' % ('/static/', path))

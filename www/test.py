@@ -6,14 +6,15 @@
 
 
 import orm
-from model import User, Blog, Comment
+from models import User, Blog, Comment
 import asyncio
 
 async def test (loop):
     await orm.create_pool(loop, user='www-data', password='www-data', db='awesome')
-    u = User(id='1', name='Test', email='test@example.com', passwd='1234567890', image='about:blank')
-    await u.save()
-    print('sql save success!')
+    # u = User(id='2', name='Test1', email='test1@example.com', passwd='1234567890', image='about:blank')
+    # await u.save()
+    u = await User.findAll()
+    print('sql save success! %s' % u)
 
 
 if __name__ == '__main__':

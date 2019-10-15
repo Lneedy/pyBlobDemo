@@ -56,3 +56,9 @@ except ImportError:
     pass
 
 configs = toDict(configs)
+
+def getConf ():
+    return configs
+
+def setConf ():
+    pass

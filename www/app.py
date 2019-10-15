@@ -14,6 +14,7 @@ from coroweb import add_routes, add_static
 
 logging.basicConfig(level=logging.INFO)
 
+
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
     options = dict(
@@ -29,6 +30,7 @@ def init_jinja2(app, **kw):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     logging.info('set jinja2 template path: %s' % path)
     env = Environment(loader=FileSystemLoader(path), **options)
+
     filters = kw.get('filters', None)
     if filters is not None:
         for name, f in filters.items():
@@ -38,11 +40,12 @@ def init_jinja2(app, **kw):
 async def logger_factory(app, handler):
     async def logger(request):
         logging.info('Request: %s %s' % (request.method, request.path))
-        return (await  handler(request))
+        return (await handler(request))
     return logger
 
 async def data_factory(app, handler):
     async def parse_data(request):
+        logging.info('parse_data...')
         if request.method == 'POST':
             if request.content_type.startswith('application/json'):
                 request.__data__ = await request.json()
@@ -91,7 +94,6 @@ async def response_factory(app, handler):
         return resp
     return response
 
-
 def datetime_filter(t):
     delta = int(time.time() - t)
     if delta < 60:
@@ -104,9 +106,6 @@ def datetime_filter(t):
         return u'%s天前' % (delta // 86400)
     dt = datetime.fromtimestamp(t)
     return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
-
-
-
 
 async def init(loop):
     await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='www-data', password='www-data', db='awesome')

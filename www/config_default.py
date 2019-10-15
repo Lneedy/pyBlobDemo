@@ -7,7 +7,7 @@ develop config
 
 __Author__ = 'lneedy'
 
-config = {
+configs = {
     'debug': True,
     'db': {
         'host': '127.0.0.1',

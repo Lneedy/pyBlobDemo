@@ -14,7 +14,6 @@ from coroweb import add_routes, add_static
 
 logging.basicConfig(level=logging.INFO)
 
-
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
     options = dict(
@@ -88,7 +87,7 @@ async def response_factory(app, handler):
             t, m = r
             if isinstance(t, int) and t >= 100 and r < 600:
                 return web.Response(t, str(m))
-
+        logging.info('handler...')
         resp = web.Response(body=str(r).encode('utf-8'))
         resp.content_type = 'text/plain;charset=utf-8'
         return resp
